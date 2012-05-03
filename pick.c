@@ -41,6 +41,6 @@
         }
       printf("Selected item id => %d", choose);
 	  object *selectedObject = getObjectById(choose);
-	  selectedObject->data->selected = 1;
+	  selectedObject->data->selected = !selectedObject->data->selected;
     }
 }
