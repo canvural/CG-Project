@@ -6,7 +6,7 @@ LDFLAGS= -lGL -lglut -lGLU
 else
 LDFLAGS= glut32.lib -lopengl32 -lglu32
 endif
-SOURCES=main.c world.c draw.c helper.c
+SOURCES=main.c world.c draw.c helper.c pick.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=Proje
 

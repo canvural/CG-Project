@@ -11,9 +11,11 @@ float cameraX,
 	  cameraZ;
 float eyeX,
 	  eyeY;
+int mouseX,
+	mouseY;
 
 /*============== Flag variables used globally in our program */
-
+GLenum renderMode;
 
 /*============== Callback Function Declarations  */
 void displayFunction();

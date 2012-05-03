@@ -13,8 +13,7 @@
 
 // include our header files
 #include "main.h"
-//#include "world.h"
-//#include "draw.h"
+#include "pick.h"
 
 
 /**
@@ -58,6 +57,8 @@ void setupRenderSettings()
 	glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 	
+	renderMode = GL_RENDER;
+	
 	fov = 45.0f;
 	
 	int worldLoaded = loadWorldFromFile("world.txt");
@@ -69,15 +70,27 @@ void setupRenderSettings()
 	// initalize the camera
 	cameraX = cameraY = cameraZ = 0;
 	eyeX = eyeY = 0;
+	
+	// select buffer
+	glSelectBuffer( PICK_BUFFER_SIZE, pickBuffer );
 }
 
 void displayFunction()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	static float i = 0;
+	int viewport[4];
+	if(renderMode == GL_SELECT) {
+		glMatrixMode( GL_PROJECTION ); 
+		glPushMatrix();
+			glLoadIdentity();
+			glGetIntegerv(GL_VIEWPORT, viewport);
+			gluPickMatrix( (double) mouseX, (double) mouseY, PICK_TOL, PICK_TOL, viewport );
+			gluPerspective(45, windowAspectRatio, 0.1, 100.0);
+	}
+	 
 	glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-	i+=0.01;
+	
 	gluLookAt(
 		cameraX, cameraY, cameraZ,
 		eyeX, eyeY, cameraZ-0.1,
@@ -106,7 +119,10 @@ void displayFunction()
 			}
 		glEnd();
 	glPopMatrix();
-	
+	if(renderMode == GL_SELECT) {
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+	}
 	glFlush();
 	glutSwapBuffers();
 }
@@ -129,10 +145,12 @@ void reshapeFunction(int width, int height)
 void mouseFunction(int button, int state, int x, int y)
 {
 	y = windowHeight - y;
-	float output_z;
 	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &output_z);
-		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d, %f]\n", x, y, output_z);
+		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d]\n", x, y);
+		// make mouse location global for picking
+		mouseX = x;
+		mouseY = y;
+		handlePicking();
 	}
 	else if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 		fprintf(stdout, "\nYou pressed right mouse button at [%d,%d]\n", x, y);

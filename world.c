@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #if defined (__WIN32__)
   #include <windows.h>
 #endif
@@ -8,6 +7,21 @@
 
 #include "world.h"
 #include "main.h"
+
+
+object *getObjectById(int id)
+{
+	object *iterator = firstObject;
+	
+	while(iterator) {
+		if(iterator->data->id == id) {
+			return iterator;
+		}
+		iterator = iterator->nextObject;
+	}
+	
+	return NULL;
+}
 
 int addObjectToWorld(object *objectToAdd, objectData *data)
 {
@@ -86,6 +100,7 @@ int loadWorldFromFile(char *fileName)
 		memcpy(data->colorArray,colorArray,3*sizeof(unsigned char));
 		data->shape = objectShape;
 		data->solidOrWire = solidOrWire;
+		data->selected = 0;
 		
 		int objectAdded = addObjectToWorld(objectToAdd, data);
 		if(objectAdded) {

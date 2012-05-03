@@ -21,6 +21,7 @@ typedef struct {
 	unsigned char *colorArray;
 	int shape;
 	int solidOrWire;
+	int selected;
 } objectData;
 
 typedef struct _object{
@@ -36,6 +37,7 @@ int numberOfObjects;
 /*========= Function Declarations*/
 int addObjectToWorld(object *objectToAdd, objectData *data);
 int loadWorldFromFile(char *fileName);
+object *getObjectById(int id);
 void goForward();
 void goBackward();
 void goLeft();
