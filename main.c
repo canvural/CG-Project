@@ -146,7 +146,8 @@ void mouseFunction(int button, int state, int x, int y)
 {
 	y = windowHeight - y;
 	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d]\n", x, y);
+	    GLdouble *worldCoords = convertScreenToWorld(x, y);
+		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d] [%f %f]\n", x, y, worldCoords[0], worldCoords[1]);
 		// make mouse location global for picking
 		mouseX = x;
 		mouseY = y;

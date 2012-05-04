@@ -45,6 +45,7 @@ int loadWorldFromFile(char *fileName)
 {
 	float translateArray[3];
 	unsigned char colorArray[3];
+	int rotateArray[3];
 	int objectShape;
 	int id, solidOrWire;
 	
@@ -72,15 +73,17 @@ int loadWorldFromFile(char *fileName)
 	
 	// 
 	while(
-		fscanf(file, "%d %f %f %f %u %u %u %d %d",
-			   &id, &translateArray[0], &translateArray[1], &translateArray[2], &colorArray[0], &colorArray[1], &colorArray[2], &objectShape, &solidOrWire
-		) == 9
+		fscanf(file, "%d %f %f %f %u %u %u %d %d %d %d %d",
+			   &id, &translateArray[0], &translateArray[1], &translateArray[2], &colorArray[0], &colorArray[1], &colorArray[2],
+			   &rotateArray[0], &rotateArray[1], &rotateArray[2], &objectShape, &solidOrWire
+		) == 12
 	)
 	{
 		#if defined (DEBUG)
 			printf("\n=====DEBUG INFO=====\n");
-			fprintf(stdout, "\nId = %d\nTranslate Array = %f, %f, %f\nColor Array = %u, %u, %u\nShape = %d\nSolidOrWire = %d\n========================",
-			        id, translateArray[0], translateArray[1], translateArray[2], colorArray[0], colorArray[1], colorArray[2], objectShape, solidOrWire
+			fprintf(stdout, "\nId = %d\nTranslate Array = %f, %f, %f\nColor Array = %u, %u, %u\nRotateArray = %d %d %d\nShape = %d\nSolidOrWire = %d\n========================",
+			        id, translateArray[0], translateArray[1], translateArray[2], colorArray[0], colorArray[1], colorArray[2], 
+					rotateArray[0], rotateArray[1], rotateArray[2], objectShape, solidOrWire
 			);
 		#endif
 		
@@ -94,10 +97,16 @@ int loadWorldFromFile(char *fileName)
 		
 		// place the data read from file into objects data
 		data->id = id;
+		
 		data->translateArray = malloc(sizeof(float) * 3);
 		memcpy(data->translateArray,translateArray,3*sizeof(float));
+		
 		data->colorArray = malloc(sizeof(unsigned char) * 3);
 		memcpy(data->colorArray,colorArray,3*sizeof(unsigned char));
+		
+		data->rotateArray = malloc(sizeof(int) * 3);
+		memcpy(data->rotateArray,rotateArray,3*sizeof(int));
+		
 		data->shape = objectShape;
 		data->solidOrWire = solidOrWire;
 		data->selected = 0;

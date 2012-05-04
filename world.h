@@ -13,11 +13,12 @@
  
  
 //DEBUG MODE
-//#define DEBUG
+#define DEBUG
  
 typedef struct {
 	unsigned int id;
 	float *translateArray;
+	int *rotateArray;
 	unsigned char *colorArray;
 	int shape;
 	int solidOrWire;
