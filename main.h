@@ -5,17 +5,20 @@
 int windowHeight, windowWidth;
 float windowAspectRatio;
 float fov;
-// Coordinates of camera at any time
-float cameraX,
-	  cameraY,
-	  cameraZ;
-float eyeX,
-	  eyeY;
 int mouseX,
 	mouseY;
+	
+// angle of rotation for the camera direction
+float angle;
+// actual vector representing the camera's direction
+float lx, lz;
+// XZ position of the camera
+float x, z;
 
 /*============== Flag variables used globally in our program */
 GLenum renderMode;
+// holds the id of object if an object selected otherwise its 0
+unsigned int selectedObjectId;
 
 /*============== Callback Function Declarations  */
 void displayFunction();
@@ -23,6 +26,7 @@ void reshapeFunction(int w, int h);
 void mouseFunction(int button, int state, int x, int y);
 void keyboard(unsigned char key,int x, int y);
 void specialKeyboard(int key, int x, int y);
+void passiveMotion(int x, int y);
 
 /*============== Function Declarations */
 void setupRenderSettings();

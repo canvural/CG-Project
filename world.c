@@ -8,6 +8,27 @@
 #include "world.h"
 #include "main.h"
 
+void makeSolidObjects()
+{
+	object *iterator = firstObject;
+	
+	while(iterator) {
+		iterator->data->solidOrWire = 1;
+		
+		iterator = iterator->nextObject;
+	}
+}
+
+void makeWiredObjects()
+{
+	object *iterator = firstObject;
+	
+	while(iterator) {
+		iterator->data->solidOrWire = 0;
+		
+		iterator = iterator->nextObject;
+	}
+}
 
 object *getObjectById(int id)
 {
@@ -22,6 +43,50 @@ object *getObjectById(int id)
 	
 	return NULL;
 }
+
+
+/**
+ * Creates a new default object using the parameter given.
+ *
+ * @param int shape Valid shape id of object.
+ * @return int Returns zero on success, non-zero otherwise.
+ */
+/*int createNewObject(int shape)
+{
+	objectData *data    = NULL;
+	object *objectToAdd = NULL;
+	
+	data = malloc(sizeof(objectData));
+	objectToAdd = malloc(sizeof(object));
+	if(data == NULL || objectToAdd == NULL){
+		fprintf(stderr, "Memory colud not allocated for object!\n");
+		return -1;
+	}
+	
+	// place the data read from file into objects data
+	data->id = ++numberOfObjects;
+	
+	data->size = 1;
+	
+	data->translateArray = malloc(sizeof(float) * 3);
+	memcpy(data->translateArray, translateArray, 3 * sizeof(float));
+	
+	data->colorArray = malloc(sizeof(unsigned char) * 3);
+	memcpy(data->colorArray, colorArray, 3 * sizeof(unsigned char));
+	
+	data->rotateArray = malloc(sizeof(int) * 3);
+	memcpy(data->rotateArray, rotateArray, 3 * sizeof(int));
+	
+	data->shape = objectShape;
+	data->solidOrWire = solidOrWire;
+	data->selected = 0;
+	
+	int objectAdded = addObjectToWorld(objectToAdd, data);
+	if(objectAdded) {
+		fprintf(stderr, "Something went wrong when adding new object to list!\n");
+		return -1;
+	}
+}*/
 
 int addObjectToWorld(object *objectToAdd, objectData *data)
 {
@@ -41,13 +106,78 @@ int addObjectToWorld(object *objectToAdd, objectData *data)
 	return 0;
 }
 
+int deleteObjectById(int id)
+{
+	object *iterator = firstObject;
+	object *previous = NULL;
+	
+	while(iterator) {
+		if(iterator->data->id == id) {
+			break;
+		}
+		previous = iterator;
+		iterator = iterator->nextObject;
+	}
+	
+	if(iterator) {
+		if(previous == NULL) {
+			if(firstObject->data->id == lastObject->data->id) {
+				firstObject = NULL;
+				lastObject = NULL;
+			}
+			else {
+				firstObject = firstObject->nextObject;
+			}
+		}
+		else {
+			previous->nextObject = iterator->nextObject;
+			if(previous->nextObject == NULL)
+				lastObject = previous;
+		}
+		free(iterator->data);
+		free(iterator);
+		
+		return 0;
+	}
+	
+	return 1;
+}
+
+int destroyWorld()
+{
+	object *iterator = firstObject;
+	object *nextObject = NULL;
+	
+	while(iterator) {
+		nextObject = iterator->nextObject;
+		
+		free(iterator->data->translateArray);
+		free(iterator->data->rotateArray);
+		free(iterator->data->colorArray);
+		free(iterator->data);
+		free(iterator);
+		iterator = nextObject;
+	}
+	firstObject = lastObject = NULL;
+	
+	return 0;
+}
+
+/**
+ * Loads a world from, file given in parameter.
+ * 
+ * File format should be like this:
+ *     x <= Number of objects
+ *     (Id of object) (x, y, z coordinate of object separately) (RGB color codes of object) (x, y, z of rotate vector) (a valid object shape id) (will the object solid or wire)
+ * 
+ */
 int loadWorldFromFile(char *fileName)
 {
 	float translateArray[3];
 	unsigned char colorArray[3];
 	int rotateArray[3];
 	int objectShape;
-	int id, solidOrWire;
+	int id, solidOrWire, size;
 	
 	objectData *data    = NULL;
 	object *objectToAdd = NULL;
@@ -73,10 +203,10 @@ int loadWorldFromFile(char *fileName)
 	
 	// 
 	while(
-		fscanf(file, "%d %f %f %f %u %u %u %d %d %d %d %d",
-			   &id, &translateArray[0], &translateArray[1], &translateArray[2], &colorArray[0], &colorArray[1], &colorArray[2],
+		fscanf(file, "%d %d %f %f %f %u %u %u %d %d %d %d %d",
+			   &id, &size, &translateArray[0], &translateArray[1], &translateArray[2], &colorArray[0], &colorArray[1], &colorArray[2],
 			   &rotateArray[0], &rotateArray[1], &rotateArray[2], &objectShape, &solidOrWire
-		) == 12
+		) == 13
 	)
 	{
 		#if defined (DEBUG)
@@ -98,14 +228,16 @@ int loadWorldFromFile(char *fileName)
 		// place the data read from file into objects data
 		data->id = id;
 		
+		data->size = size;
+		
 		data->translateArray = malloc(sizeof(float) * 3);
-		memcpy(data->translateArray,translateArray,3*sizeof(float));
+		memcpy(data->translateArray, translateArray, 3 * sizeof(float));
 		
 		data->colorArray = malloc(sizeof(unsigned char) * 3);
-		memcpy(data->colorArray,colorArray,3*sizeof(unsigned char));
+		memcpy(data->colorArray, colorArray, 3 * sizeof(unsigned char));
 		
 		data->rotateArray = malloc(sizeof(int) * 3);
-		memcpy(data->rotateArray,rotateArray,3*sizeof(int));
+		memcpy(data->rotateArray, rotateArray, 3 * sizeof(int));
 		
 		data->shape = objectShape;
 		data->solidOrWire = solidOrWire;
@@ -121,21 +253,4 @@ int loadWorldFromFile(char *fileName)
 	fclose(file);
 	
 	return 0;
-}
-
-void goForward()
-{
-	cameraZ += 0.2;
-}
-void goBackward()
-{
-	cameraZ -= 0.2;
-}
-void goLeft()
-{
-	cameraY += 0.2;
-}
-void goRight()
-{
-	cameraY -= 0.2;
 }

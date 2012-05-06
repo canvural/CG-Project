@@ -13,9 +13,8 @@
  *
  * Handles the picking an object.
  */
- 
- void handlePicking()
- {
+int handlePicking()
+{
 	renderMode = GL_SELECT; 
 	glRenderMode(renderMode);
 	glInitNames(); 
@@ -23,7 +22,7 @@
 	displayFunction();
 	renderMode = GL_RENDER; 
 	hits = glRenderMode(renderMode);
-	fprintf(stderr, "# pick hits = %d\n", hits);
+	fprintf(stdout, "# pick hits = %d\n", hits);
 	
 	if(hits > 0)
     {
@@ -32,15 +31,26 @@
 		int loop;
 
         for (loop = 1; loop < hits; loop++) {
-            // If This Object Is Closer To Us Than The One We Have Selected
-            if (pickBuffer[loop*4+1] < (GLuint)depth)
-            {
-                choose = pickBuffer[loop*4+3];
-                depth = pickBuffer[loop*4+1];
-            }
+			// select the closest object
+			if (pickBuffer[loop*4+1] < (GLuint)depth)
+			{
+				choose = pickBuffer[loop*4+3];
+				depth = pickBuffer[loop*4+1];
+			}
         }
-      printf("Selected item id => %d", choose);
-	  object *selectedObject = getObjectById(choose);
-	  selectedObject->data->selected = !selectedObject->data->selected;
+        printf("Selected item id => %d\n\n", choose);
+	    object *selectedObject = getObjectById(choose);
+	    if(selectedObject->data->selected) {
+			selectedObject->data->selected = 0;
+			selectedObjectId = 0;
+	    }
+	    else {
+			selectedObject->data->selected = 1;
+			selectedObjectId = choose;
+		}
+	  
+		return 0;
     }
+	
+	return 1;
 }

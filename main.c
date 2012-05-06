@@ -14,6 +14,7 @@
 // include our header files
 #include "main.h"
 #include "pick.h"
+#include "helper.h"
 
 
 /**
@@ -36,10 +37,11 @@ int main(int argc, char** argv)
 	// Callback functions
 	glutDisplayFunc(displayFunction);
 	glutReshapeFunc(reshapeFunction);
-	glutIdleFunc(displayFunction);
+	//glutIdleFunc(displayFunction);
 	glutMouseFunc(mouseFunction);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboard);
+	//glutPassiveMotionFunc(passiveMotion);
 	
 	setupRenderSettings();
 	
@@ -54,6 +56,7 @@ void setupRenderSettings()
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 	
@@ -61,15 +64,21 @@ void setupRenderSettings()
 	
 	fov = 45.0f;
 	
+	// create menus
+	createMenus();
+	
 	int worldLoaded = loadWorldFromFile("world.txt");
 	if(worldLoaded) {
 		fprintf(stdout, "World could not loaded! Here is why:\n\t");
 		exit(-1);
 	}
 	
-	// initalize the camera
-	cameraX = cameraY = cameraZ = 0;
-	eyeX = eyeY = 0;
+	// angle of rotation for the camera direction
+	angle=0.0;
+	// actual vector representing the camera's direction
+	lx=0.0f,lz=-1.0f;
+	// XZ position of the camera
+	x=0.0f,z=5.0f;
 	
 	// select buffer
 	glSelectBuffer( PICK_BUFFER_SIZE, pickBuffer );
@@ -91,11 +100,14 @@ void displayFunction()
 	glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 	
-	gluLookAt(
+	/*gluLookAt(
 		cameraX, cameraY, cameraZ,
-		eyeX, eyeY, cameraZ-0.1,
+		eyeX, eyeY, eyeZ-0.1,
 		0, 1, 0
-	);
+	);*/
+	gluLookAt(	x, 1.0f, z,
+			x+lx, 1.0f,  z+lz,
+			0.0f, 1.0f,  0.0f);
 	
 	drawWorld();
 	
@@ -103,9 +115,9 @@ void displayFunction()
 	 * Yerdeki kareler.
 	 */
 	glPushMatrix();
-		GLfloat fExtent = 60.0f;
+		GLfloat fExtent = 30.0f;
 		GLfloat fStep = 1.0f;
-		GLfloat y = -0.9f;
+		GLfloat y = -1.0f;
 		GLint iLine;
 		glColor3i(0, 0, 0);
 		glBegin(GL_LINES);
@@ -119,12 +131,16 @@ void displayFunction()
 			}
 		glEnd();
 	glPopMatrix();
+	
 	if(renderMode == GL_SELECT) {
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 	}
 	glFlush();
 	glutSwapBuffers();
+	
+	if(renderMode == GL_RENDER)
+		glutPostRedisplay();
 }
 
 void reshapeFunction(int width, int height)
@@ -153,59 +169,57 @@ void mouseFunction(int button, int state, int x, int y)
 		mouseY = y;
 		handlePicking();
 	}
-	else if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	else if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 		fprintf(stdout, "\nYou pressed right mouse button at [%d,%d]\n", x, y);
+	}
 }
 
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
-		case 'd':
-		case 'D':
-			glTranslatef(-1, 0.0, 0.0);
+		case 't':
+		case 'T': 
+			makeWiredObjects();
 			break;
-		case 'a':
-		case 'A':
-			glTranslatef(1, 0.0, 0.0);
-			break;
-		case 'w':
-		case 'W':
-			glTranslatef(0.0, 0.0, 1);
-			break;
-		case 's':
-		case 'S':
-			glTranslatef(0.0, 0.0, -1);
+		case 'k':
+		case 'K': 
+			makeSolidObjects();
 			break;
 		case 'q':
-		case 'Q':
-			glTranslatef(0.0, 1, 0.0);
+			exit(EXIT_SUCCESS);
 			break;
-		case 'e':
-		case 'E':
-			glTranslatef(0.0, -1, 0.0);
-			break;
-		case 27:            
-			  exit (0);
-			  break;
+		default: break;
 	}
 }
 
 void specialKeyboard(int key, int x, int y)
 {
-     switch(key)
-     {
-        case(GLUT_KEY_UP):
-            goForward();
-            break;
-        case(GLUT_KEY_DOWN):
-            goBackward();
-            break;
-        case(GLUT_KEY_LEFT):
-            goLeft();
-            break;
-        case(GLUT_KEY_RIGHT):
-            goRight();
-            break;
-     }
+     float fraction = 0.3f;
+
+	switch (key) {
+		case GLUT_KEY_LEFT :
+			angle -= 0.1f;
+			lx = sin(angle);
+			lz = -cos(angle);
+			break;
+		case GLUT_KEY_RIGHT :
+			angle += 0.1f;
+			lx = sin(angle);
+			lz = -cos(angle);
+			break;
+		case GLUT_KEY_UP :
+			x += lx * fraction;
+			z += lz * fraction;
+			break;
+		case GLUT_KEY_DOWN :
+			x -= lx * fraction;
+			z -= lz * fraction;
+			break;
+	}
+}
+
+void passiveMotion(int x, int y)
+{
+	
 }
