@@ -83,8 +83,8 @@ int createNewObject(int shape)
 		return -1;
 	}
 	
-	data->translateArray[0] = (float) floor(worldCoords[0]);
-	data->translateArray[1] = (float) floor(worldCoords[1]);
+	data->translateArray[0] = (float) floor(worldCoords[0]) / 4;
+	data->translateArray[1] = (float) floor(worldCoords[1]) / 4;
 	data->translateArray[2] = -8.0f;
 	printf("\nAdding object to x:%f  y:%f  z:%f\n", data->translateArray[0], data->translateArray[1], data->translateArray[2]);
 	

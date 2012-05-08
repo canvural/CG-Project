@@ -202,6 +202,7 @@ void keyboard(unsigned char key, int x, int y)
 			makeSolidObjects();
 			break;
 		case 'q':
+			destroyWorld();
 			exit(EXIT_SUCCESS);
 			break;
 		default: break;
