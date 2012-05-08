@@ -22,13 +22,18 @@ void createMenus()
 	glutAddMenuEntry("Yellow", COLOR_YELLOW);
 	
 	sizeMenu = glutCreateMenu(menuHandler);
-	glutAddMenuEntry("0.5",SIZE_HALF);
-	glutAddMenuEntry("1",SIZE_ONE);
+	glutAddMenuEntry("0.5", SIZE_HALF);
+	glutAddMenuEntry("1", SIZE_ONE);
 	glutAddMenuEntry("2", SIZE_TWO);
 	
+	addMenu = glutCreateMenu(menuHandler);
+	glutAddMenuEntry("Teapot", ADD_TEAPOT);
+	glutAddMenuEntry("Cube", ADD_CUBE);
+	
 	objectMenu = glutCreateMenu(menuHandler);
-	glutAddSubMenu("Rotate",rotateMenu);
-	glutAddSubMenu("Color",colorMenu);
+	glutAddSubMenu("Rotate", rotateMenu);
+	glutAddSubMenu("Color", colorMenu);
+	glutAddSubMenu("Add Obj.", addMenu);
 	glutAddMenuEntry("Delete", DELETEOBJ);
 	
 	mainMenu = glutCreateMenu(menuHandler);
@@ -125,6 +130,16 @@ void menuHandler(int theChoosenOne)
 			if(selectedObjectId) {
 				object *obj = getObjectById(selectedObjectId);
 				obj->data->size = 2;
+			}
+			break;
+		}
+		/*=== Add Object*/
+		case ADD_TEAPOT: {
+			if(!selectedObjectId) {
+				if(createNewObject(ADD_TEAPOT % 14)) {
+					fprintf(stdout, "Error when adding new object:\n\t");
+					exit(EXIT_FAILURE);
+				}
 			}
 			break;
 		}

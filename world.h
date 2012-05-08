@@ -39,6 +39,7 @@ int numberOfObjects;
 /*========= Function Declarations*/
 int addObjectToWorld(object *objectToAdd, objectData *data);
 int loadWorldFromFile(char *fileName);
+int createNewObject(int shape);
 object *getObjectById(int id);
 int deleteObjectById(int id);
 int destroyWorld();

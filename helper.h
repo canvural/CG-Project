@@ -18,13 +18,16 @@
 #define SIZE_ONE 12
 #define SIZE_TWO 13
 #define DELETEOBJ 14
+#define ADD_TEAPOT 15
+#define ADD_CUBE 16
 
 // menu ids
 int mainMenu,
 	objectMenu,
 	rotateMenu,
 	colorMenu,
-	sizeMenu;
+	sizeMenu,
+	addMenu;
 
 GLdouble *convertScreenToWorld(int x, int y);
 void createMenus();

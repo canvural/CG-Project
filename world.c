@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #if defined (__WIN32__)
   #include <windows.h>
 #endif
@@ -7,6 +8,7 @@
 
 #include "world.h"
 #include "main.h"
+#include "helper.h"
 
 void makeSolidObjects()
 {
@@ -51,7 +53,7 @@ object *getObjectById(int id)
  * @param int shape Valid shape id of object.
  * @return int Returns zero on success, non-zero otherwise.
  */
-/*int createNewObject(int shape)
+int createNewObject(int shape)
 {
 	objectData *data    = NULL;
 	object *objectToAdd = NULL;
@@ -63,22 +65,39 @@ object *getObjectById(int id)
 		return -1;
 	}
 	
+	// take world coordinates
+	GLdouble *worldCoords;
+	worldCoords = convertScreenToWorld(mouseX, mouseY);
+	
 	// place the data read from file into objects data
 	data->id = ++numberOfObjects;
 	
 	data->size = 1;
 	
 	data->translateArray = malloc(sizeof(float) * 3);
-	memcpy(data->translateArray, translateArray, 3 * sizeof(float));
-	
 	data->colorArray = malloc(sizeof(unsigned char) * 3);
-	memcpy(data->colorArray, colorArray, 3 * sizeof(unsigned char));
-	
 	data->rotateArray = malloc(sizeof(int) * 3);
-	memcpy(data->rotateArray, rotateArray, 3 * sizeof(int));
 	
-	data->shape = objectShape;
-	data->solidOrWire = solidOrWire;
+	if(data->translateArray == NULL || data->colorArray == NULL || data->rotateArray == NULL) {
+		fprintf(stderr, "Memory colud not allocated!");
+		return -1;
+	}
+	
+	data->translateArray[0] = (float) floor(worldCoords[0]);
+	data->translateArray[1] = (float) floor(worldCoords[1]);
+	data->translateArray[2] = -8.0f;
+	printf("\nAdding object to x:%f  y:%f  z:%f\n", data->translateArray[0], data->translateArray[1], data->translateArray[2]);
+	
+	data->colorArray[0] = 255;
+	data->colorArray[1] = 0;
+	data->colorArray[2] = 0;
+	
+	data->rotateArray[0] = 0;
+	data->rotateArray[1] = 0;
+	data->rotateArray[2] = 0;
+	
+	data->shape = shape;
+	data->solidOrWire = 1;
 	data->selected = 0;
 	
 	int objectAdded = addObjectToWorld(objectToAdd, data);
@@ -86,7 +105,9 @@ object *getObjectById(int id)
 		fprintf(stderr, "Something went wrong when adding new object to list!\n");
 		return -1;
 	}
-}*/
+	
+	return 0;
+}
 
 int addObjectToWorld(object *objectToAdd, objectData *data)
 {
@@ -136,6 +157,8 @@ int deleteObjectById(int id)
 		}
 		free(iterator->data);
 		free(iterator);
+		
+		selectedObjectId = 0;
 		
 		return 0;
 	}

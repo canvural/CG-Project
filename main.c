@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	glutMouseFunc(mouseFunction);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboard);
-	//glutPassiveMotionFunc(passiveMotion);
+	glutPassiveMotionFunc(passiveMotion);
 	
 	setupRenderSettings();
 	
@@ -64,6 +64,21 @@ void setupRenderSettings()
 	
 	fov = 45.0f;
 	
+	// light stuff
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+	//glColorMaterial(GL_FRONT,GL_DIFFUSE);
+	glEnable(GL_LIGHT0);
+	GLfloat ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
+	GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	GLfloat position[] = { -1.5f, 1.0f, -4.0f, 1.0f };
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
+	
 	// create menus
 	createMenus();
 	
@@ -78,7 +93,7 @@ void setupRenderSettings()
 	// actual vector representing the camera's direction
 	lx=0.0f,lz=-1.0f;
 	// XZ position of the camera
-	x=0.0f,z=5.0f;
+	x=0.0f,z=20.0f;
 	
 	// select buffer
 	glSelectBuffer( PICK_BUFFER_SIZE, pickBuffer );
@@ -163,7 +178,7 @@ void mouseFunction(int button, int state, int x, int y)
 	y = windowHeight - y;
 	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 	    GLdouble *worldCoords = convertScreenToWorld(x, y);
-		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d] [%f %f]\n", x, y, worldCoords[0], worldCoords[1]);
+		fprintf(stdout, "\nYou pressed left mouse button at [%d,%d] [%f %f %f]\n", x, y, worldCoords[0], worldCoords[1], worldCoords[2]);
 		// make mouse location global for picking
 		mouseX = x;
 		mouseY = y;
@@ -199,12 +214,12 @@ void specialKeyboard(int key, int x, int y)
 
 	switch (key) {
 		case GLUT_KEY_LEFT :
-			angle -= 0.1f;
+			angle -= 0.05f;
 			lx = sin(angle);
 			lz = -cos(angle);
 			break;
 		case GLUT_KEY_RIGHT :
-			angle += 0.1f;
+			angle += 0.05f;
 			lx = sin(angle);
 			lz = -cos(angle);
 			break;
@@ -221,5 +236,7 @@ void specialKeyboard(int key, int x, int y)
 
 void passiveMotion(int x, int y)
 {
-	
+	mouseX = x;
+	mouseY = windowHeight - y;
+	//printf("%d, %d\n", mouseX, mouseY);
 }
