@@ -15,6 +15,7 @@
 #include "main.h"
 #include "pick.h"
 #include "helper.h"
+#include "world.h"
 
 
 /**
@@ -28,20 +29,21 @@ int main(int argc, char** argv)
 {
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	windowHeight = 500;windowWidth = 500;
-    glutInitWindowSize(windowWidth, windowHeight);
-    glutInitWindowPosition(50, 50);
-    glutInit(&argc, argv);
+    	glutInitWindowSize(windowWidth, windowHeight);
+    	glutInitWindowPosition(50, 50);
+    	glutInit(&argc, argv);
 	
 	glutCreateWindow("Computer Graphics Project");
 	
 	// Callback functions
 	glutDisplayFunc(displayFunction);
 	glutReshapeFunc(reshapeFunction);
-	//glutIdleFunc(displayFunction);
+	glutIdleFunc(displayFunction);
 	glutMouseFunc(mouseFunction);
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialKeyboard);
 	glutPassiveMotionFunc(passiveMotion);
+	glutMotionFunc(motionFunc);
 	
 	setupRenderSettings();
 	
@@ -58,21 +60,31 @@ void setupRenderSettings()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    	glCullFace(GL_BACK);
 	
 	renderMode = GL_RENDER;
 	
+	xpos = 0; ypos = 0; zpos = 0; xrot = 0; yrot = 90; angle=0.0;
+	
 	fov = 45.0f;
+	gravity = 0;
+	pervaneX = 0;
+	pervaneY = 0;
+	pervaneZ = 0;
+	pervaneXe = 0;
+	pervaneYe = 0;
+	pervaneZe = 0;
 	
 	// light stuff
 	glEnable(GL_LIGHTING);
+	
 	glEnable(GL_COLOR_MATERIAL);
 	//glColorMaterial(GL_FRONT,GL_DIFFUSE);
 	glEnable(GL_LIGHT0);
-	GLfloat ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat ambientLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
 	GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	GLfloat position[] = { -1.5f, 1.0f, -4.0f, 1.0f };
+	GLfloat position[] = { 5.0f, 5.0f, 9.0f, 0.0f };
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
@@ -90,10 +102,6 @@ void setupRenderSettings()
 	
 	// angle of rotation for the camera direction
 	angle=0.0;
-	// actual vector representing the camera's direction
-	lx=0.0f,lz=-1.0f;
-	// XZ position of the camera
-	x=0.0f,z=20.0f;
 	
 	// select buffer
 	glSelectBuffer( PICK_BUFFER_SIZE, pickBuffer );
@@ -115,14 +123,10 @@ void displayFunction()
 	glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 	
-	/*gluLookAt(
-		cameraX, cameraY, cameraZ,
-		eyeX, eyeY, eyeZ-0.1,
-		0, 1, 0
-	);*/
-	gluLookAt(	x, 1.0f, z,
-			x+lx, 1.0f,  z+lz,
-			0.0f, 1.0f,  0.0f);
+	gluLookAt(0, 1.0f, 20,
+		  0, 1.0f,  19,
+		  0.0f, 1.0f,  0.0f);
+	camera();
 	
 	drawWorld();
 	
@@ -132,8 +136,27 @@ void displayFunction()
 	glPushMatrix();
 		GLfloat fExtent = 30.0f;
 		GLfloat fStep = 1.0f;
-		GLfloat y = -1.0f;
+		GLfloat y = -0.2f;
 		GLint iLine;
+		glColor3i(0, 0, 0);
+		glBegin(GL_LINES);
+			for(iLine = -fExtent; iLine <= fExtent; iLine += fStep)
+			{
+				glVertex3f(iLine, y, fExtent);
+				glVertex3f(iLine, y, -fExtent);
+
+				glVertex3f(fExtent, y, iLine);
+				glVertex3f(-fExtent, y, iLine);
+			}
+		glEnd();
+	glPopMatrix();
+	
+	// ust taraftaki kafes
+	glPushMatrix();
+		fExtent = 30.0f;
+		fStep = 1.0f;
+		y = 10.0f;
+		iLine = 0;
 		glColor3i(0, 0, 0);
 		glBegin(GL_LINES);
 			for(iLine = -fExtent; iLine <= fExtent; iLine += fStep)
@@ -156,6 +179,12 @@ void displayFunction()
 	
 	if(renderMode == GL_RENDER)
 		glutPostRedisplay();
+}
+
+void camera (void) {
+    glRotatef(xrot,1.0,0.0,0.0); 
+    glRotatef(yrot,0.0,1.0,0.0); 
+    glTranslated(-xpos,-ypos,-zpos); 
 }
 
 void reshapeFunction(int width, int height)
@@ -203,7 +232,103 @@ void keyboard(unsigned char key, int x, int y)
 			break;
 		case 'q':
 			destroyWorld();
+			glutLeaveGameMode();
 			exit(EXIT_SUCCESS);
+			break;
+		case 'o':
+			glEnable(GL_LIGHT0);
+			break;
+		case 'p':
+			glDisable(GL_LIGHT0);
+			break;
+		case 'g':
+			gravity = !gravity;
+			break;
+		case 'x':
+			pervaneX = 1;
+			pervaneY = 0;
+			pervaneZ = 0;
+			pervaneXe = 0;
+			pervaneYe = 0;
+			pervaneZe = 0;
+			break;
+		case 'y':
+			pervaneX = 0;
+			pervaneY = 1;
+			pervaneZ = 0;
+			pervaneXe = 0;
+			pervaneYe = 0;
+			pervaneZe = 0;
+			break;
+		case 'z':
+			pervaneX = 0;
+			pervaneY = 0;
+			pervaneZ = 1;
+			pervaneXe = 0;
+			pervaneYe = 0;
+			pervaneZe = 0;
+			break;
+		// minus
+		case 'v':
+			pervaneXe = 1;
+			pervaneYe = 0;
+			pervaneZe = 0;
+			pervaneX = 0;
+			pervaneY = 0;
+			pervaneZ = 0;
+			break;
+		case 'u':
+			pervaneXe = 0;
+			pervaneYe = 1;
+			pervaneZe = 0;
+			pervaneX = 0;
+			pervaneY = 0;
+			pervaneZ = 0;
+			break;
+		case 'c':
+			pervaneXe = 0;
+			pervaneYe = 0;
+			pervaneZe = 1;
+			pervaneX = 0;
+			pervaneY = 0;
+			pervaneZ = 0;
+			break;
+		case 'b':
+			pervaneX = 0;
+			pervaneY = 0;
+			pervaneZ = 0;
+			pervaneXe = 0;
+			pervaneYe = 0;
+			pervaneZe = 0;
+			break;
+		/*======== CAMERA ROTATIONS*/
+		// move forward
+		case 'w':
+			yrotrad = (yrot / 180 * 3.141592654f);
+			xrotrad = (xrot / 180 * 3.141592654f); 
+			xpos += (float)(sin(yrotrad)) ;
+			zpos -= (float)(cos(yrotrad)) ;
+			ypos -= (float)(sin(xrotrad)) ;
+			break;
+		// turn left
+		case 'a':
+			yrot += 1;
+			if (yrot >360)
+				yrot -= 360;
+			break;
+		//move backward
+		case 's':
+			yrotrad = (yrot / 180 * 3.141592654f);
+			xrotrad = (xrot / 180 * 3.141592654f); 
+			xpos -= (float)(sin(yrotrad));
+			zpos += (float)(cos(yrotrad)) ;
+			ypos += (float)(sin(xrotrad));
+			break;
+		// turn right
+		case 'd':
+			yrot -= 1;
+			if (yrot < -360)
+				yrot += 360;
 			break;
 		default: break;
 	}
@@ -211,26 +336,16 @@ void keyboard(unsigned char key, int x, int y)
 
 void specialKeyboard(int key, int x, int y)
 {
-     float fraction = 0.3f;
-
-	switch (key) {
-		case GLUT_KEY_LEFT :
-			angle -= 0.05f;
-			lx = sin(angle);
-			lz = -cos(angle);
-			break;
-		case GLUT_KEY_RIGHT :
-			angle += 0.05f;
-			lx = sin(angle);
-			lz = -cos(angle);
-			break;
+    switch (key) {
 		case GLUT_KEY_UP :
-			x += lx * fraction;
-			z += lz * fraction;
+			xrot += 1;
+			if (xrot >360)
+				xrot -= 360;
 			break;
 		case GLUT_KEY_DOWN :
-			x -= lx * fraction;
-			z -= lz * fraction;
+			xrot -= 1;
+			if (xrot < -360)
+				xrot += 360;
 			break;
 	}
 }
@@ -240,4 +355,18 @@ void passiveMotion(int x, int y)
 	mouseX = x;
 	mouseY = windowHeight - y;
 	//printf("%d, %d\n", mouseX, mouseY);
+}
+
+void motionFunc(int x, int y)
+{
+	GLdouble *worldCoords = convertScreenToWorld(x, windowHeight - y);
+	
+	// if an object selected and dragging with mouse, move the objectwith the mouse
+	if(selectedObjectId) {
+		object *obj = getObjectById(selectedObjectId);
+		
+		obj->data->translateArray[0] =  worldCoords[0];
+		obj->data->translateArray[1] =  worldCoords[1];
+		obj->data->translateArray[2] =  worldCoords[2];
+	}
 }

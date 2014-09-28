@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=
 OS := $(shell uname)
 ifeq ($(OS), Linux)
-LDFLAGS= -lGL -lglut -lGLU -lm
+LDFLAGS= -lGL -lglut -lGLU
 else
 LDFLAGS= glut32.lib -lopengl32 -lglu32
 endif
